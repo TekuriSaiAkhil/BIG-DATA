@@ -36,11 +36,13 @@ def consume_from_kafka(topic):
         writer = csv.writer(file)
         file.seek(0, 2)  # Move the cursor to the end of the file
         if file.tell() == 0:
-            writer.writerow(['DE_temperature', 'DE_radiation_direct_horizontal', 'DE_radiation_diffuse_horizontal', 'DE_solar_generation_prediction'])
+            writer.writerow(['DE_temperature', 'DE_radiation_direct_horizontal', 'DE_radiation_diffuse_horizontal', 'TimeStamp','DE_solar_generation_prediction'])
 
         for message in consumer:
             message_data = message.value.decode('utf-8')
-            features = [float(i) for i in message_data.split(",")]
+            raw_data = message_data.split(",")
+            features = [float(i) for i in raw_data[:-1]]  # Exclude timestamp from features
+            timestamp = raw_data[-1]  # Last element is the timestamp
             if features[1] == 0 and features[2] == 0:
                 up_scale_pred = 0
             else:
@@ -51,13 +53,13 @@ def consume_from_kafka(topic):
                 up_scale_pred = 7602.36 + (7204.89 * float(pred.select("prediction").first()[0]))
 
             # Combine features and prediction to write in a row
-            row_to_write = features + [up_scale_pred]
+            row_to_write = features + [timestamp, up_scale_pred]
             print(f"Received message from topic {topic}: {row_to_write}")
             sql_insert = """
-            INSERT INTO predictions (DE_temperature, DE_radiation_direct_horizontal, DE_radiation_diffuse_horizontal, DE_solar_generation_prediction)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO pred (DE_temperature, DE_radiation_direct_horizontal, DE_radiation_diffuse_horizontal, TimeStamp, DE_solar_generation_prediction)
+            VALUES (%s, %s, %s, %s, %s)
             """
-            cursor.execute(sql_insert, (features[0], features[1], features[2], up_scale_pred))
+            cursor.execute(sql_insert, (features[0], features[1], features[2], timestamp, up_scale_pred))
             conn.commit()
             # Write the data row to CSV
             writer.writerow(row_to_write)
@@ -69,7 +71,7 @@ if __name__ == "__main__":
     spark = SparkSession.builder.appName("KafkaConsumerApp").getOrCreate()
     array_to_vector_udf = udf(lambda x: Vectors.dense(x), VectorUDT())
     model = GBTRegressionModel.load("final_best_gbt_model")
-    kafka_topics = ["weather_final"]
+    kafka_topics = ["weather_data_time"]
 
     with ThreadPoolExecutor(max_workers=len(kafka_topics)) as executor:
         executor.map(consume_from_kafka, kafka_topics)

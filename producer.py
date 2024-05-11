@@ -14,13 +14,13 @@ def produce_to_kafka(topic, file_path):
             message_data = ",".join(row)
             print(message_data)
             producer.send(topic, value=message_data.encode("utf-8"))
-            time.sleep(30)  # Simulate real-time streaming
+            time.sleep(3)  # Simulate real-time streaming
 
     producer.close()
 
 if __name__ == "__main__":
-    kafka_topics = ["weather_final"]
-    file_paths = ["1month_new.csv"]
+    kafka_topics = ["weather_data_time"]
+    file_paths = ["new_data_2years.csv"]
 
     with ThreadPoolExecutor(max_workers=len(kafka_topics)) as executor:
         executor.map(produce_to_kafka, kafka_topics, file_paths)
