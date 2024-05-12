@@ -4,9 +4,9 @@
 3. Sai Aravind Yanamadala (sy3902)
 
 
-Project Proposal Document: https://docs.google.com/document/d/10FNlkvsleHBngJLuxgZro9FKW2jOOSG6Qbhl1VYH2JM/edit?usp=sharing
+Project Proposal Document  - [Link](https://docs.google.com/document/d/10FNlkvsleHBngJLuxgZro9FKW2jOOSG6Qbhl1VYH2JM/edit?usp=sharing)
 
-Project Presentation: https://github.com/TekuriSaiAkhil/BIG-DATA/blob/main/CSGY6513.pptx
+Project Final Presentation - [Link](https://github.com/TekuriSaiAkhil/BIG-DATA/blob/main/CSGY6513.pptx)
 
 **Data PreProcessing code**: pre-processing.ipynb
 
